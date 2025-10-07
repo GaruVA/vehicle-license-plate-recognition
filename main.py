@@ -505,7 +505,7 @@ def run_enhanced_plate_detection():
     frame_count = 0
     start_time = time.time()
     
-    cv2.namedWindow("Enhanced License Plate Detection", cv2.WINDOW_AUTOSIZE)
+    cv2.namedWindow("Enhanced License Plate Detection", cv2.WINDOW_NORMAL)
     plate_windows = {}
     
     print("🎮 Controls: 'q' to quit, 's' to save current frame")
@@ -716,7 +716,8 @@ def run_enhanced_plate_detection():
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1)
 
         cv2.imshow("Enhanced License Plate Detection", annotated_frame)
-        
+        cv2.resizeWindow("Enhanced License Plate Detection", annotated_frame.shape[1], annotated_frame.shape[0])
+
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
@@ -725,7 +726,7 @@ def run_enhanced_plate_detection():
             save_path = f"enhanced_detected_plates_{timestamp}.jpg"
             cv2.imwrite(save_path, annotated_frame)
             print(f"💾 Saved frame: {save_path}")
-            
+
             for track_id, track in tracks.items():
                 if 'crop' in track and track['hits'] >= tracker.min_hits:
                     crop_path = f"enhanced_plate_{track_id}_{timestamp}.jpg"
