@@ -152,7 +152,7 @@ def test_ip_camera_connectivity():
     
     # Test the user's specific camera URL
     test_urls = [
-        "rtsp://admin:Web@doc122@172.30.30.194:554/Streaming/Channels/101",  # From your config
+        "rtsp://admin:Admin%4001%21@192.168.100.132:554/Streaming/Channels/101",  # From your config
     ]
     
     working_cameras = 0

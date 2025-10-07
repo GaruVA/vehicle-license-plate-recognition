@@ -11,10 +11,15 @@ import threading
 import queue
 from datetime import datetime
 
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+MODELS_DIR = os.path.join(SCRIPT_DIR, 'models')
+
 CONFIG = {
-    'PLATE_MODEL_PATH': "/home/gvassalaarachchi/Documents/vlpr/models/plate_detection.pt",
-    'CHAR_MODEL_PATH': "/home/gvassalaarachchi/Documents/vlpr/models/character_recognition.pt",
-    'VIDEO_SOURCE': "rtsp://admin:Web@doc122@172.30.30.194:554/Streaming/Channels/101",
+    'PLATE_MODEL_PATH': os.path.join(MODELS_DIR, 'plate_detection.pt'),
+    'CHAR_MODEL_PATH': os.path.join(MODELS_DIR, 'character_recognition.pt'),
+    'VIDEO_SOURCE': "rtsp://admin:Admin%4001%21@192.168.100.132:554/Streaming/Channels/101",
     'CONFIDENCE_THRESHOLD': 0.5,
     'TRACKER_MAX_AGE': 30,
     'TRACKER_MIN_HITS': 3,
