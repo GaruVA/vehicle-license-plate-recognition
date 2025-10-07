@@ -28,10 +28,10 @@ CONFIG = {
     'FRAME_SKIP': 2,  # Process every Nth frame
     
     # ROI settings (Region of Interest)
-    'ROI_X1': 200,
-    'ROI_Y1': 150,
-    'ROI_X2': 1000,
-    'ROI_Y2': 600,
+    'ROI_X1': 500,
+    'ROI_Y1': 400,
+    'ROI_X2': 1920,
+    'ROI_Y2': 1080,
     'ROI_COLOR': (0, 255, 255),  # Yellow
     'ROI_THICKNESS': 3,
     'USE_ROI_CROP': False,  # Set True to detect only in ROI (faster)
