@@ -477,6 +477,13 @@ def run_enhanced_plate_detection():
     
     db_manager = None
     saved_plates = set()
+    detects_dir = os.path.join(SCRIPT_DIR, "detects")
+    crops_dir = os.path.join(detects_dir, "crops")
+    raw_dir = os.path.join(detects_dir, "raw")
+    annotated_dir = os.path.join(detects_dir, "annotated")
+    for d in [detects_dir, crops_dir, raw_dir, annotated_dir]:
+        if not os.path.exists(d):
+            os.makedirs(d)
     if CONFIG.get('DATABASE_ENABLED', False):
         try:
             db_manager = DatabaseManager(
@@ -632,29 +639,39 @@ def run_enhanced_plate_detection():
             if track['hits'] >= tracker.min_hits:
                 _, _, track['is_valid'] = validator.validate_and_correct(track['consensus_text'], track['avg_confidence'])
                 
-                if (track.get('is_valid', False) and db_manager and 
-                    not track.get('saved_to_db', False) and
-                    track['avg_confidence'] >= CONFIG['MIN_CONFIDENCE_FOR_DB'] and
-                    track['hits'] >= CONFIG['MIN_HITS_FOR_DB']):
-                    
+                if (track.get('is_valid', False) and not track.get('saved_to_db', False)
+                    and track['avg_confidence'] >= CONFIG['MIN_CONFIDENCE_FOR_DB']
+                    and track['hits'] >= CONFIG['MIN_HITS_FOR_DB']):
                     should_save = True
                     plate_text = track['consensus_text']
-                    
                     for saved_plate in saved_plates:
                         similarity = tracker.calculate_plate_similarity(plate_text, saved_plate)
                         if similarity > 0.85:
                             should_save = False
                             print(f"🔄 Skipping similar plate: {plate_text} (similar to saved: {saved_plate}, similarity: {similarity:.2f})")
                             break
-                    
                     if should_save:
-                        db_success = db_manager.insert_plate_detection(track['consensus_text'], track['avg_confidence'], track_id)
-                        if db_success:
-                            track['saved_to_db'] = True
-                            saved_plates.add(plate_text)
-                            print(f"💾 Saved to database: {track['consensus_text']}")
-                        else:
-                            print(f"❌ Database save failed: {track['consensus_text']}")
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        base_name = f"{track_id}_{plate_text}_{int(track['avg_confidence']*100)}_{timestamp}"
+                        # 1. Save plate crop
+                        crop_path = os.path.join(crops_dir, f"crop_{base_name}.jpg")
+                        cv2.imwrite(crop_path, track['crop'])
+                        # 2. Save full frame (no writings or bbox)
+                        raw_path = os.path.join(raw_dir, f"raw_{base_name}.jpg")
+                        cv2.imwrite(raw_path, frame)
+                        # 3. Save full frame (with writings and bbox)
+                        annotated = annotated_frame.copy()
+                        x1, y1, x2, y2 = track['bbox']
+                        cv2.rectangle(annotated, (x1, y1), (x2, y2), (0,255,0), 2)
+                        info_text = f"Plate: {plate_text} | Conf: {track['avg_confidence']:.2f} | Track: {track_id} | Time: {timestamp}"
+                        cv2.putText(annotated, info_text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+                        annotated_path = os.path.join(annotated_dir, f"annotated_{base_name}.jpg")
+                        cv2.imwrite(annotated_path, annotated)
+                        track['saved_to_db'] = True
+                        saved_plates.add(plate_text)
+                        print(f"💾 Saved crop: {crop_path}")
+                        print(f"💾 Saved raw frame: {raw_path}")
+                        print(f"💾 Saved annotated frame: {annotated_path}")
                     else:
                         track['saved_to_db'] = True
         
